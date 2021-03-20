@@ -4,12 +4,17 @@
 
 <div class="row">
     <div class="col-md-8 offset-2">
+        <div class="alert alert-info mx-2">
+            Baglantı Durumu: <strong id="connection-status"></strong>
+        </div>
+    </div>
+    <div class="col-md-8 offset-2">
         <input class="form-control" type="text" id="input-name" />
         <hr />
         <button class="btn btn-primary" id="save-name">İsim Kaydet</button>
-        <div class="alert alert-info">
-            Baglantı Durumu: <strong id="connection-status"></strong>
-        </div>
+    </div>
+    <div class="col-md-8 offset-2 mx-2">
+       <ul class="list-group" id="name-list"></ul>
     </div>
 </div>
 
@@ -17,11 +22,15 @@
     <script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
 
     <script type="text/javascript">
+        function changeConnectionState(message) {
+            $("#connection-status").text(message);
+        }
+
         //Client'ın SignalR.API tarafındaki hub'a bağlanması gerekli.
-        const hubAddress = "https://localhost:44303/MyHub";
+        const hubAddress = "http://localhost:2722/MyHub";
 
         //Bağlantı oluşturuyorum.
-        var connection = new signalR.HubConnectionBuilder().withUrl(hubAddress);
+        var connection = new signalR.HubConnectionBuilder().withUrl(hubAddress).build();
         changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
 
         connection.start()
@@ -32,11 +41,6 @@
             .catch((error) => { //Hata alırsa
                 console.log(error);
             });
-
-
-        function changeConnectionState(message) {
-            $("#connection-status").text(message);
-        }
 
         $("#save-name").click(() => { //Hub tarafındaki(API) metotu çağıracağız.
 
@@ -53,7 +57,7 @@
         //Bir metota abone olma işlemi
         //MyHub'da yazmış olduğumuz "ReceiveName" metotuna abone oldu.
         connection.on("ReceiveName", (name) => {
-            console.log(`Name: ${name}`);
+            $("#name-list").append(`<li class="group-item">${name}</li>`);
         });
 
     </script>
