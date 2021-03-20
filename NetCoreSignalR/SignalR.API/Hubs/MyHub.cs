@@ -22,7 +22,7 @@ namespace SignalR.API.Hubs
         /// SendNameAsync: server tarafındaki metot ismidir. "ReceiveName" ise client tarafındaki metot ismidir.
         /// </summary>
         /// <returns></returns>
-        public async Task SendNameAsync(string message)
+        public async Task SendNameAsync(string name)
         {
             /*
              * Clientlardaki metotun çalışması için istek göndereceğim. Clientlarda da bu metot tanımlıysa çalışacaktır. 
@@ -31,7 +31,7 @@ namespace SignalR.API.Hubs
              */
 
             //ReceiveMessage metotuna istek at, message'ına beraberinde gönder
-            await Clients.All.SendAsync("ReceiveName", message);
+            await Clients.All.SendAsync("ReceiveName", name);
         }
 
         /// <summary>
