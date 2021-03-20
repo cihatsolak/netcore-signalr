@@ -3,37 +3,31 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using SignalR.API.Hubs;
 
 namespace SignalR.API
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        // Bu yöntem çalýþma zamaný tarafýndan çaðrýlýr. Kapsayýcýya hizmet eklemek için bu yöntemi kullanýn.
+        // Uygulamanýzý nasýl yapýlandýracaðýnýzla ilgili daha fazla bilgi için https://go.microsoft.com/fwlink/?LinkID=398940 adresini ziyaret edin.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSignalR(); //SignalR ekliyorum.
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        // Bu yöntem çalýþma zamaný tarafýndan çaðrýlýr.HTTP istek ardýþýk düzenini yapýlandýrmak için bu yöntemi kullanýn.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-                });
+                endpoints.MapControllers();
+
+                /* Clientlar benim signalr hub'ýma MyHub üzerinden baðlansýn
+                 */
+                endpoints.MapHub<MyHub>("/MyHub");
             });
         }
     }
