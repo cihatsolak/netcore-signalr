@@ -15,10 +15,10 @@ namespace SignalR.Web.Controllers
 
         /// <summary>
         /// SignalR'da loglama seviyesine göre loglama yapısı oluşturduk.
-        /// ConnectionState özelliğini kullandık.
+        /// Bağlantı durumlarına göre aksiyon aldık. Bağlantının kopması vs gibi durumlarda.
         /// </summary>
         /// <returns></returns>
-        public IActionResult Log()
+        public IActionResult Connection()
         {
             return View();
         }

@@ -13,7 +13,7 @@ namespace SignalR.API
             {
                 options.AddPolicy("CorsPolicy", builder =>
                 {
-                    builder.WithOrigins("http://localhost:1425") //Bu url adresine izin ver.
+                    builder.WithOrigins("http://localhost:2500") //Bu url adresine izin ver.
                     .AllowAnyHeader() //headerý kabul et.
                     .AllowAnyMethod() //tüm metotlar için
                     .AllowCredentials();
