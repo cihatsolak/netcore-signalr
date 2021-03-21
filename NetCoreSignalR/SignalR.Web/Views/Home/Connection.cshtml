@@ -36,9 +36,25 @@
             $("#connection-status").text(message);
         }
 
-        function successConnectionState() {
+        function hideConnectionDiv() {
             $('#loading').hide();
             changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
+        }
+
+        function startConnection() { //SignalR Bağlantısını başlat
+
+            connection.start()
+                .then(() => { //Başarılı ise
+                    hideConnectionDiv();
+                })
+                .catch((error) => { //Hata alırsa
+                    console.log(error);
+
+                    setTimeout(() => {
+                        startConnection();
+                    }, 2000); //2 saniye sonra tekrar startConnection() metotunu çağır.
+
+                });
         }
     </script>
 
@@ -55,13 +71,8 @@
 
         changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
 
-        connection.start()
-            .then(() => { //Başarılı ise
-                successConnectionState();
-            })
-            .catch((error) => { //Hata alırsa
-                console.log(error);
-            });
+        startConnection(); //Bağlantıyı başlat.
+
     </script>
 
     <!--withAutomaticReconnect event metotları-->
@@ -77,12 +88,14 @@
          * Bağlantı kopup tekrar bağlantı kurulduğunda server tarafında signalR tekrar bir connection id veriyor. Bunu bir sessionId gibi düşünebiliriz.
         */
         connection.onreconnected(connectionId => {
-            successConnectionState();
+            hideConnectionDiv();
+            console.log(`connectionId: ${connectionId}`);
         });
 
         //Bağlantı denemelerinde başarısız olunursa.
         connection.onclose(() => {
-            successConnectionState();
+            hideConnectionDiv();
+            startConnection(); //Tekrar bağlantı denemesinde bulun.
         });
     </script>
 
