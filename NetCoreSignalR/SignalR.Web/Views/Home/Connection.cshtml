@@ -1,0 +1,122 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row">
+    <div class="col-md-2" id="loading">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden"></span>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="alert alert-info mx-2">
+            Baglantı Durumu: <strong id="connection-status"></strong>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8 offset-2">
+        <input class="form-control" type="text" id="input-name" />
+        <hr />
+        <button class="btn btn-primary" id="save-name">İsim Kaydet</button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8 offset-2 mx-2">
+        <ul class="list-group" id="name-list"></ul>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
+
+    <!--Ortak Metotlar-->
+    <script type="text/javascript">
+        function changeConnectionState(message) {
+            $("#connection-status").text(message);
+        }
+
+        function hideConnectionDiv() {
+            $('#loading').hide();
+            changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
+        }
+
+        function startConnection() { //SignalR Bağlantısını başlat
+
+            connection.start()
+                .then(() => { //Başarılı ise
+                    hideConnectionDiv();
+                })
+                .catch((error) => { //Hata alırsa
+                    console.log(error);
+
+                    setTimeout(() => {
+                        startConnection();
+                    }, 2000); //2 saniye sonra tekrar startConnection() metotunu çağır.
+
+                });
+        }
+    </script>
+
+    <!--Bağlantı kurma, debug, connection işlemleri -->
+    <script type="text/javascript">
+        //Client'ın SignalR.API tarafındaki hub'a bağlanması gerekli.
+        const hubAddress = "http://localhost:2722/MyHub";
+
+        //Bağlantı oluşturuyorum.
+        var connection = new signalR.HubConnectionBuilder()
+            .configureLogging(signalR.LogLevel.Debug) //Debugdan itibaren logları dinle. Bu sayede debugdan itibaren logları console'a yazdıracak.
+            .withAutomaticReconnect(1000, 1000, 3000, 3000) //Eğer bağlantı koparsa tekrar bağlanmayı dene. (Default gelen saniye değerlerini ezdim, kendim belirlemiş olduğum değerleri yazdım.)
+            .withUrl(hubAddress).build();
+
+        changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
+
+        startConnection(); //Bağlantıyı başlat.
+
+    </script>
+
+    <!--withAutomaticReconnect event metotları-->
+    <script type="text/javascript">
+        connection.onreconnecting(error => {
+            $('#loading').show();
+            changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
+            console.log(`Error: ${error}`);
+        });
+
+        /*
+         * ConnectionId: client server'a her bağlantı kurduğunda bir connectionid alır ve bu id üzerinden hangi clientin bağlantı kurduğunu anlıyorum.
+         * Bağlantı kopup tekrar bağlantı kurulduğunda server tarafında signalR tekrar bir connection id veriyor. Bunu bir sessionId gibi düşünebiliriz.
+        */
+        connection.onreconnected(connectionId => {
+            hideConnectionDiv();
+            console.log(`connectionId: ${connectionId}`);
+        });
+
+        //Bağlantı denemelerinde başarısız olunursa.
+        connection.onclose(() => {
+            hideConnectionDiv();
+            startConnection(); //Tekrar bağlantı denemesinde bulun.
+        });
+    </script>
+
+    <!--Metot çağırma ve abone olma durumları-->
+    <script type="text/javascript">
+        $("#save-name").click(() => { //Hub tarafındaki(API) metotu çağıracağız.
+
+            let name = $("#input-name").val();
+
+            //Client tarafındaki SendNameAsync metotunu invoke et ve name parametresini gönder.
+            connection.invoke("SendNameAsync", name).then(() => { //Başarılı ise
+
+            }).catch((error) => { //Başarısız ise
+                console.log(`Error message: ${error}`);
+            });
+        });
+
+        //Bir metota abone olma işlemi
+        //MyHub'da yazmış olduğumuz "ReceiveName" metotuna abone oldu.
+        connection.on("ReceiveName", (name) => {
+            $("#name-list").append(`<li class="group-item">${name}</li>`);
+        });
+    </script>
+}
