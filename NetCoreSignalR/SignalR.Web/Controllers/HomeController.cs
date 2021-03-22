@@ -18,7 +18,16 @@ namespace SignalR.Web.Controllers
         /// Bağlantı durumlarına göre aksiyon aldık. Bağlantının kopması vs gibi durumlarda.
         /// </summary>
         /// <returns></returns>
-        public IActionResult Connection()
+        public IActionResult ConnectionState()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// OnConnectedAsync(), OnDisconnectedAsync() metotlarının kullanımı
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult HubVirtualMethods()
         {
             return View();
         }
