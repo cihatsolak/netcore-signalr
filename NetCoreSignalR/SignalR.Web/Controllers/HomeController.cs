@@ -31,5 +31,14 @@ namespace SignalR.Web.Controllers
         {
             return View();
         }
+
+        /// <summary>
+        /// IHubContext<THub> kullanımı
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult FootballHub()
+        {
+            return View();
+        }
     }
 }

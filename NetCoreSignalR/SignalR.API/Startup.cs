@@ -36,6 +36,7 @@ namespace SignalR.API
                 /* Clientlar benim signalr hub'ýma MyHub üzerinden baðlansýn
                  */
                 endpoints.MapHub<MyHub>("/MyHub");
+                endpoints.MapHub<FootballHub>("/FootballHub");
             });
         }
     }
