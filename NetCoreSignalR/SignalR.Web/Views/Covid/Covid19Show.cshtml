@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewData["Title"] = "Covid19Show";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Covid19 Anlık Grafik</h1>
+
+<div class="row justify-content-md-center">
+    <div class="col-md-12">
+        <div id="covid19_chart" style="width: 1500px; height: 700px"></div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script type="text/javascript">
+        //Client'ın SignalR.API tarafındaki hub'a bağlanması gerekli.
+        const hubAddress = "http://localhost:12903/CovidHub";
+        var covidChartList = [];
+        covidChartList.push(["Tarih", "Istanbul", "Ankara", "İzmir", "Konya", "Antalya"]);
+
+        var connection = new signalR.HubConnectionBuilder()
+            .configureLogging(signalR.LogLevel.Debug) //Debugdan itibaren logları dinle. Bu sayede debugdan itibaren logları console'a yazdıracak.
+            .withAutomaticReconnect(1000, 1000, 3000, 3000) //Eğer bağlantı koparsa tekrar bağlanmayı dene. (Default gelen saniye değerlerini ezdim, kendim belirlemiş olduğum değerleri yazdım.)
+            .withUrl(hubAddress).build();
+
+        $(document).ready(() => {
+
+            connection.start()
+                .then(() => { //Başarılı ise
+                    connection.invoke("GetCovidListAsync"); //ben sayfa ilk açıldığında verileri hub'dan alıyorum. Bu api metotundan da alınabilir.
+                })
+                .catch((error) => { //Hata alırsa
+                    console.log(error);
+                });
+        });
+
+
+    </script>
+
+    <!--Metotlara abone olduğum kısım-->
+    <script type="text/javascript">
+        connection.on("ReceiveCovidList", (covidList) => {
+            //Her vt'den geldiğinde doldurduğumuz için sıfırlamamız gerekiyor
+            //burada 0 . index olarka Tarih ve ülkeleri alıyoruz diğerlerini sıfırlıyoruz.
+            covidChartList = covidChartList.splice(0, 1);
+           
+            covidList.forEach((item) => {
+                covidChartList.push(
+                    [item.covidDate, item.numberOfCases[0], item.numberOfCases[1], item.numberOfCases[2], item.numberOfCases[3], item.numberOfCases[4]]
+                );
+            });
+
+            google.charts.load('current', { 'packages': ['corechart'] });
+            google.charts.setOnLoadCallback(drawChart);
+        });
+    </script>
+
+    <!--Google Chart-->
+    <script type="text/javascript">
+        function drawChart() {
+            var data = google.visualization.arrayToDataTable(covidChartList);
+
+            var options = {
+                title: 'Covid19 Grafik',
+                curveType: 'function',
+                legend: { position: 'bottom' }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('covid19_chart'));
+
+            chart.draw(data, options);
+        }
+    </script>
+}
