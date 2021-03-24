@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using SignalR.CovidAPI.Hubs;
 using SignalR.CovidAPI.Models;
+using SignalR.CovidAPI.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,23 +32,19 @@ namespace SignalR.CovidAPI
             });
 
             services.AddControllers();
+            services.AddSignalR();
+
+            services.AddScoped<ICovidService, CovidService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Hello World!");
-                });
+                endpoints.MapControllers();
+                endpoints.MapHub<CovidHub>("/CovidHub");
             });
         }
     }

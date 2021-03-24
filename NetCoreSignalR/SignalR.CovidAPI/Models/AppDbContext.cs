@@ -9,5 +9,11 @@ namespace SignalR.CovidAPI.Models
         }
 
         public DbSet<Covid> Covids { get; set; }
+        public DbSet<CovidPivotTableDTO> CovidPivotTableDTOs { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<CovidPivotTableDTO>().HasNoKey();
+        }
     }
 }
