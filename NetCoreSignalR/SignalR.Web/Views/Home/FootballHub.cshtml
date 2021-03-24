@@ -1,0 +1,215 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="row">
+    <div class="col-md-4 mx-auto">
+        Bağlantı Durumu: <span id="connection-status" class="text-warning font-weight-bolder"></span>
+        <div class="spinner-border" role="status" id="loading">
+            <span class="visually-hidden"></span>
+        </div>
+    </div>
+</div>
+<div class="row my-4">
+    <div class="col-md-8 mx-auto">
+        <div class="mb-3">
+            <label for="player-name" class="form-label">Oyuncu Adı</label>
+            <input type="tel" class="form-control" id="player-name" name="player-name">
+        </div>
+
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="team" value="Team A" data-othergroup="Team B" checked>
+            <label class="form-check-label">
+                Takım A
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="team" value="Team B" data-othergroup="Team A">
+            <label class="form-check-label">
+                Takım B
+            </label>
+        </div>
+
+        <div class="row mt-2 justify-content-md-center">
+            <div class="col-12">
+                <button type="button" id="add-group-player" class="btn btn-primary btn-block">Takıma Ekle</button>
+            </div>
+            <div class="col-12 mt-2">
+                <button type="button" id="add-complextype" class="btn btn-outline-danger btn-block">Complex Type Örneği Ekle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <div class="col-md-2">
+        <h4 class="h4 text-left">Team A</h4>
+        <ul id="team-a" class="list-group">
+        </ul>
+    </div>
+    <div class="col-md-2">
+        <h4 class="h4 text-left">Team B</h4>
+        <ul id="team-b" class="list-group">
+        </ul>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
+
+    <!--Ortak Metotlar-->
+    <script type="text/javascript">
+
+        //Sayfa ilk açıldığında katılımcıları listele
+        $(document).ready(function () {
+            $.get("http://localhost:2722/api/Football/GetPlayersInTeam", function (data) {
+                $.each(data, function (index, playersWithTeam) {
+                    if (playersWithTeam.teamName === 'Team A') {
+                        $.each(playersWithTeam.users, function (index, userName) {
+                            $("#team-a").append(`<li class="group-item">${userName}</li>`);
+                        });
+                    } else {
+                        $.each(playersWithTeam.users, function (index, userName) {
+                            $("#team-b").append(`<li class="group-item">${userName}</li>`);
+                        });
+                    }
+                });
+            });
+        });
+
+        function changeConnectionState(message) {
+            $("#connection-status").text(message);
+        }
+
+        function hideConnectionDiv() {
+            $('#loading').hide();
+            changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
+        }
+
+        function startConnection() { //SignalR Bağlantısını başlat
+
+            connection.start()
+                .then(() => { //Başarılı ise
+                    hideConnectionDiv();
+                })
+                .catch((error) => { //Hata alırsa
+                    console.log(error);
+
+                    setTimeout(() => {
+                        startConnection();
+                    }, 2000); //2 saniye sonra tekrar startConnection() metotunu çağır.
+
+                });
+        }
+    </script>
+
+    <!--Bağlantı kurma, debug, connection işlemleri -->
+    <script type="text/javascript">
+        //Client'ın SignalR.API tarafındaki hub'a bağlanması gerekli.
+        const hubAddress = "http://localhost:2722/FootballHub";
+
+        //Bağlantı oluşturuyorum.
+        var connection = new signalR.HubConnectionBuilder()
+            .configureLogging(signalR.LogLevel.Debug) //Debugdan itibaren logları dinle. Bu sayede debugdan itibaren logları console'a yazdıracak.
+            .withAutomaticReconnect(1000, 1000, 3000, 3000) //Eğer bağlantı koparsa tekrar bağlanmayı dene. (Default gelen saniye değerlerini ezdim, kendim belirlemiş olduğum değerleri yazdım.)
+            .withUrl(hubAddress).build();
+
+        changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
+
+        startConnection(); //Bağlantıyı başlat.
+
+    </script>
+
+    <!--withAutomaticReconnect event metotları-->
+    <script type="text/javascript">
+        connection.onreconnecting(error => {
+            $('#loading').show();
+            changeConnectionState(connection.connectionState); //Bağlantı durumunu ekrana basıyorum.
+            console.log(`Error: ${error}`);
+        });
+
+        /*
+         * ConnectionId: client server'a her bağlantı kurduğunda bir connectionid alır ve bu id üzerinden hangi clientin bağlantı kurduğunu anlıyorum.
+         * Bağlantı kopup tekrar bağlantı kurulduğunda server tarafında signalR tekrar bir connection id veriyor. Bunu bir sessionId gibi düşünebiliriz.
+        */
+        connection.onreconnected(connectionId => {
+            hideConnectionDiv();
+            console.log(`connectionId: ${connectionId}`);
+        });
+
+        //Bağlantı denemelerinde başarısız olunursa.
+        connection.onclose(() => {
+            hideConnectionDiv();
+            startConnection(); //Tekrar bağlantı denemesinde bulun.
+        });
+    </script>
+
+    <!--Click ve Invoke Metotları-->
+    <script type="text/javascript">
+
+        //Takım Seçimi
+        $("input[type=radio]").change(() => {
+            const teamName = $("input[type=radio]:checked").val();
+            const otherTeamName = $("input[type=radio]:checked").data('othergroup');
+
+            //Hub tarafındaki AddToGroupAsync metotunu invoke et ve name parametresini gönder. Gruba abone ol.
+            connection.invoke("AddToGroupAsync", teamName).then(() => { //Başarılı ise
+
+            }).catch((error) => { //Başarısız ise
+                console.log(`Error message: ${error}`);
+            });
+
+            //Hub tarafındaki RemoveFromGroupAsync metotunu invoke et ve name parametresini gönder. Grubtan aboneliği sonlandır.
+            connection.invoke("RemoveFromGroupAsync", otherTeamName).then(() => { //Başarılı ise
+
+            }).catch((error) => { //Başarısız ise
+                console.log(`Error message: ${error}`);
+            });
+        });
+
+        $("#add-group-player").click(() => { //Hub tarafındaki(API) metotu çağıracağız.
+
+            let playerName = $("#player-name").val();
+            let teamName = $("input[type=radio]:checked").val();
+
+            //Hub tarafındaki AddPlayerToGroupAsync metotunu invoke et ve name parametrelerini gönder.
+            connection.invoke("AddPlayerToGroupAsync", playerName, teamName).then(() => { //Başarılı ise
+
+            }).catch((error) => { //Başarısız ise
+                console.log(`Error message: ${error}`);
+            });
+        });
+
+    </script>
+
+    <!--Bir metota abone olma işlemi-->
+    <script type="text/javascript">
+        //FootballHub'da yazmış olduğumuz "Player" metotuna abone oldu.
+        connection.on("Player", (playerName, teamId) => {
+            if (teamId == 1) {
+                $("#team-a").append(`<li class="group-item">${playerName}</li>`);
+            } else {
+                $("#team-b").append(`<li class="group-item">${playerName}</li>`);
+            }
+        });
+
+        //FootballHub'da yazmış olduğumuz "Player" metotuna abone oldu.
+        connection.on("Warning", (message) => {
+            alert(message);
+        });
+    </script>
+
+    <!--Complex Type (Class) ile çalışmak-->
+    <script type="text/javascript">
+        let user = { "Name": "Arda", "TeamId": 1 };
+        $("#add-complextype").click(() => { //Hub tarafındaki(API) metotu çağıracağız.
+
+            //Hub tarafındaki ComplexTypeAsync metotunu invoke et ve name parametreyi gönder.
+            connection.invoke("ComplexTypeAsync", user).then(() => { //Başarılı ise
+
+            }).catch((error) => { //Başarısız ise
+                console.log(`Error message: ${error}`);
+            });
+        });
+    </script>
+}

@@ -1,12 +1,22 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalR.API.Hubs;
+using SignalR.API.Models;
 
 namespace SignalR.API
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; set; }
+
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors(options =>
@@ -18,6 +28,11 @@ namespace SignalR.API
                     .AllowAnyMethod() //tüm metotlar için
                     .AllowCredentials();
                 });
+            });
+
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("Default"));
             });
 
             services.AddControllers();
@@ -36,6 +51,7 @@ namespace SignalR.API
                 /* Clientlar benim signalr hub'ýma MyHub üzerinden baðlansýn
                  */
                 endpoints.MapHub<MyHub>("/MyHub");
+                endpoints.MapHub<FootballHub>("/FootballHub");
             });
         }
     }
