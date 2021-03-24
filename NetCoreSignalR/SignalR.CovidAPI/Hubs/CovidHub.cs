@@ -17,10 +17,10 @@ namespace SignalR.CovidAPI.Hubs
 
         public async Task GetCovidListAsync()
         {
-            var covids = await _covidService.GetCovidPivotTableAsync();
+            var covidChartViewModels = await _covidService.GetCovidListAsync();
 
             //ReceiveCovidList metot ismi ICovidHub'dan gelmektedir.
-            await Clients.All.ReceiveCovidList(covids);
+            await Clients.All.ReceiveCovidList(covidChartViewModels);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using SignalR.CovidAPI.Models;
+using SignalR.CovidAPI.Models.ViewModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,6 +10,6 @@ namespace SignalR.CovidAPI.Hubs
     /// </summary>
     public interface ICovidHub
     {
-        Task ReceiveCovidList(List<CovidPivotTableDTO> covids);
+        Task ReceiveCovidList(List<CovidChartViewModel> covidChartViewModels);
     }
 }

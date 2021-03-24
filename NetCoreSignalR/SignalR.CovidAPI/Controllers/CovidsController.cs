@@ -30,25 +30,7 @@ namespace SignalR.CovidAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveCovid(Covid covid)
         {
-            var covids = await _covidService.AddCovidAsync(covid);
-
-            var covidsChartViewModel = new List<CovidChartViewModel>();
-
-            covids.ForEach(covid =>
-            {
-                var covidChartViewModel = new CovidChartViewModel
-                {
-                    CovidDate = covid.CovidDate
-                };
-
-                covidChartViewModel.NumberOfCases.Add(covid.Istanbul);
-                covidChartViewModel.NumberOfCases.Add(covid.Ankara);
-                covidChartViewModel.NumberOfCases.Add(covid.Izmir);
-                covidChartViewModel.NumberOfCases.Add(covid.Konya);
-                covidChartViewModel.NumberOfCases.Add(covid.Antalya);
-
-                covidsChartViewModel.Add(covidChartViewModel);
-            });
+            var covidsChartViewModel = await _covidService.AddCovidAsync(covid);
 
             return Ok(covidsChartViewModel);
         }

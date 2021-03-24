@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SignalR.CovidAPI.Hubs;
 using SignalR.CovidAPI.Models;
+using SignalR.CovidAPI.Models.ViewModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -18,22 +19,43 @@ namespace SignalR.CovidAPI.Services
             _covidHub = covidHub;
         }
 
-        public async Task<List<CovidPivotTableDTO>> AddCovidAsync(Covid covid)
+        public async Task<List<CovidChartViewModel>> AddCovidAsync(Covid covid)
         {
             await _appDbContext.Covids.AddAsync(covid);
             await _appDbContext.SaveChangesAsync();
 
-            var covids = await GetCovidPivotTableAsync();
+            var covidsChartViewModel = await GetCovidListAsync();
 
             //Yeni bir vaka eklendiğinde bunu tüm clientlara bildiriyorum.
-            await _covidHub.Clients.All.ReceiveCovidList(covids);
+            await _covidHub.Clients.All.ReceiveCovidList(covidsChartViewModel);
 
-            return covids;
+            return covidsChartViewModel;
         }
 
-        public async Task<List<CovidPivotTableDTO>> GetCovidPivotTableAsync()
+        public async Task<List<CovidChartViewModel>> GetCovidListAsync()
         {
-            return await _appDbContext.CovidPivotTableDTOs.FromSqlRaw("CovidPivotTable").ToListAsync();
+            //stored procedure
+            var covids = await _appDbContext.CovidPivotTableDTOs.FromSqlRaw("CovidPivotTable").ToListAsync();
+
+            var covidsChartViewModel = new List<CovidChartViewModel>();
+
+            foreach (var covid in covids)
+            {
+                var covidChartViewModel = new CovidChartViewModel
+                {
+                    CovidDate = covid.CovidDate
+                };
+
+                covidChartViewModel.NumberOfCases.Add(covid.Istanbul);
+                covidChartViewModel.NumberOfCases.Add(covid.Ankara);
+                covidChartViewModel.NumberOfCases.Add(covid.Izmir);
+                covidChartViewModel.NumberOfCases.Add(covid.Konya);
+                covidChartViewModel.NumberOfCases.Add(covid.Antalya);
+
+                covidsChartViewModel.Add(covidChartViewModel);
+            }
+
+            return covidsChartViewModel;
         }
     }
 }

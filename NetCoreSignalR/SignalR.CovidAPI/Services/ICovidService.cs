@@ -1,4 +1,5 @@
 ﻿using SignalR.CovidAPI.Models;
+using SignalR.CovidAPI.Models.ViewModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,12 +12,12 @@ namespace SignalR.CovidAPI.Services
         /// </summary>
         /// <param name="covid"></param>
         /// <returns></returns>
-        Task<List<CovidPivotTableDTO>> AddCovidAsync(Covid covid);
+        Task<List<CovidChartViewModel>> AddCovidAsync(Covid covid);
 
         /// <summary>
-        /// Stored Procedure - Covid vakalarının illere göre pivot table haline getirilmiş
+        /// Stored Procedure - Covid vakalarının illere göre pivot table'dan viewmodel'e dönüştürülmüş hali
         /// </summary>
         /// <returns></returns>
-        Task<List<CovidPivotTableDTO>> GetCovidPivotTableAsync();
+        Task<List<CovidChartViewModel>> GetCovidListAsync();
     }
 }
