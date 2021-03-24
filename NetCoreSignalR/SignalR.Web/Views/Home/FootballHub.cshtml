@@ -34,6 +34,9 @@
             <div class="col-12">
                 <button type="button" id="add-group-player" class="btn btn-primary btn-block">Takıma Ekle</button>
             </div>
+            <div class="col-12 mt-2">
+                <button type="button" id="add-complextype" class="btn btn-outline-danger btn-block">Complex Type Örneği Ekle</button>
+            </div>
         </div>
     </div>
 </div>
@@ -149,14 +152,14 @@
             const teamName = $("input[type=radio]:checked").val();
             const otherTeamName = $("input[type=radio]:checked").data('othergroup');
 
-            //Client tarafındaki AddToGroupAsync metotunu invoke et ve name parametresini gönder. Gruba abone ol.
+            //Hub tarafındaki AddToGroupAsync metotunu invoke et ve name parametresini gönder. Gruba abone ol.
             connection.invoke("AddToGroupAsync", teamName).then(() => { //Başarılı ise
 
             }).catch((error) => { //Başarısız ise
                 console.log(`Error message: ${error}`);
             });
 
-            //Client tarafındaki RemoveFromGroupAsync metotunu invoke et ve name parametresini gönder. Grubtan aboneliği sonlandır.
+            //Hub tarafındaki RemoveFromGroupAsync metotunu invoke et ve name parametresini gönder. Grubtan aboneliği sonlandır.
             connection.invoke("RemoveFromGroupAsync", otherTeamName).then(() => { //Başarılı ise
 
             }).catch((error) => { //Başarısız ise
@@ -169,7 +172,7 @@
             let playerName = $("#player-name").val();
             let teamName = $("input[type=radio]:checked").val();
 
-            //Client tarafındaki AddPlayerToGroupAsync metotunu invoke et ve name parametrelerini gönder.
+            //Hub tarafındaki AddPlayerToGroupAsync metotunu invoke et ve name parametrelerini gönder.
             connection.invoke("AddPlayerToGroupAsync", playerName, teamName).then(() => { //Başarılı ise
 
             }).catch((error) => { //Başarısız ise
@@ -193,6 +196,20 @@
         //FootballHub'da yazmış olduğumuz "Player" metotuna abone oldu.
         connection.on("Warning", (message) => {
             alert(message);
+        });
+    </script>
+
+    <!--Complex Type (Class) ile çalışmak-->
+    <script type="text/javascript">
+        let user = { "Name": "Arda", "TeamId": 1 };
+        $("#add-complextype").click(() => { //Hub tarafındaki(API) metotu çağıracağız.
+
+            //Hub tarafındaki ComplexTypeAsync metotunu invoke et ve name parametreyi gönder.
+            connection.invoke("ComplexTypeAsync", user).then(() => { //Başarılı ise
+
+            }).catch((error) => { //Başarısız ise
+                console.log(`Error message: ${error}`);
+            });
         });
     </script>
 }

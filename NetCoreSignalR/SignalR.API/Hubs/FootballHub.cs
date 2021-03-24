@@ -4,6 +4,7 @@ using SignalR.API.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace SignalR.API.Hubs
@@ -86,6 +87,26 @@ namespace SignalR.API.Hubs
             string connectionId = Context.ConnectionId;
 
             await Groups.RemoveFromGroupAsync(connectionId, teamName);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public async Task ComplexTypeAsync(object model)
+        {
+            User user = JsonSerializer.Deserialize<User>(model.ToString());
+            if (user == null)
+            {
+                await Task.CompletedTask;
+                return;
+            }
+
+            await _appDbContext.Users.AddAsync(user);
+            await _appDbContext.SaveChangesAsync();
+
+            await Clients.Caller.SendAsync("Warning", "complex type eklendi.");
         }
     }
 }
