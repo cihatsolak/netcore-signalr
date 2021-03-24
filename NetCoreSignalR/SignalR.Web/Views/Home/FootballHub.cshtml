@@ -3,14 +3,11 @@
 }
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-4 mx-auto">
         Bağlantı Durumu: <span id="connection-status" class="text-warning font-weight-bolder"></span>
         <div class="spinner-border" role="status" id="loading">
             <span class="visually-hidden"></span>
         </div>
-        <span class="float-right">
-            Online Client Sayısı: <span id="client-count">0</span>
-        </span>
     </div>
 </div>
 <div class="row my-4">
@@ -33,6 +30,17 @@
 
 @section Scripts{
     <script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
+
+    <!--Sayfa ilk açıldığında katılımcıları listele-->
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.get("http://localhost:2722/api/Football/GetParticipants", function (data) {
+                $.each(data, function (index, value) {
+                    $("#player-list").append(`<li class="group-item">${value}</li>`);
+                });
+            });
+        });
+    </script>
 
     <!--Ortak Metotlar-->
     <script type="text/javascript">
@@ -110,7 +118,7 @@
             let playerName = $("#player-name").val();
 
             //Client tarafındaki SendNameAsync metotunu invoke et ve name parametresini gönder.
-            connection.invoke("AddPlayersMatch", playerName).then(() => { //Başarılı ise
+            connection.invoke("AddPlayersMatchAsync", playerName).then(() => { //Başarılı ise
 
             }).catch((error) => { //Başarısız ise
                 console.log(`Error message: ${error}`);
@@ -118,9 +126,15 @@
         });
 
         //Bir metota abone olma işlemi
-        //MyHub'da yazmış olduğumuz "ReceiveName" metotuna abone oldu.
+        //FootballHub'da yazmış olduğumuz "Player" metotuna abone oldu.
         connection.on("Player", (playerName) => {
             $("#player-list").append(`<li class="group-item">${playerName}</li>`);
+        });
+
+        //Bir metota abone olma işlemi
+        //FootballHub'da yazmış olduğumuz "Player" metotuna abone oldu.
+        connection.on("Warning", (message) => {
+            alert(message);
         });
 
     </script>

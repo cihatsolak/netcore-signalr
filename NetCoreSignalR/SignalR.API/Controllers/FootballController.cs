@@ -26,5 +26,11 @@ namespace SignalR.API.Controllers
 
             return Ok();
         }
+
+        [HttpGet]
+        public IActionResult GetParticipants()
+        {
+            return Ok(FootballHub.Participants);
+        }
     }
 }
