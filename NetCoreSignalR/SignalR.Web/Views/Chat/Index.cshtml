@@ -1,0 +1,82 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Chat Hub</h1>
+
+<div class="row">
+    <div class="col-md-8 offset-4" id="connection-ids">
+    </div>
+</div>
+
+<div class="row justify-content-md-center">
+    <div class="col-md-10 offset-2">
+        <div class="form-floating">
+            <textarea class="form-control" placeholder="Leave a comment here" id="messages" style="height: 100px"></textarea>
+            <label for="messages">Mesajlar</label>
+        </div>
+        <div class="my-3">
+            <label for="message" class="form-label">Mesaj</label>
+            <input type="text" class="form-control" id="message">
+        </div>
+        <button type="button" id="send-message" class="btn btn-success">Gönder</button>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
+
+    <script type="text/javascript">
+        const hubAddress = "http://localhost:2722/ChatHub";
+
+        var connection = new signalR.HubConnectionBuilder()
+            .configureLogging(signalR.LogLevel.Debug) //Debugdan itibaren logları dinle. Bu sayede debugdan itibaren logları console'a yazdıracak.
+            .withAutomaticReconnect(1000, 1000, 3000, 3000) //Eğer bağlantı koparsa tekrar bağlanmayı dene. (Default gelen saniye değerlerini ezdim, kendim belirlemiş olduğum değerleri yazdım.)
+            .withUrl(hubAddress).build();
+
+        $(document).ready(() => {
+            connection.start()
+                .then(() => {
+                    connection.invoke("GetConnectionIdsAsync");
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        });
+    </script>
+
+    <!--Events-->
+    <script type="text/javascript">
+        $("#send-message").click(() => {
+            let connectionId = $('input[name=connectionId]:checked').val();
+            let message = $("#message").val();
+
+            connection.invoke("SendMessageAsync", message, connectionId);
+        });
+    </script>
+
+    <!--Abone Durumu-->
+    <script type="text/javascript">
+        connection.on("ReceiveConnectionIds", (connectionIds) => {
+            if (connectionIds == null) {
+                return;
+            }
+
+            $("#connection-ids").html('');
+
+            $.each(connectionIds, function (index, connectionId) {
+                $("#connection-ids").append(`<div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="connectionId" value="${connectionId}">
+                                                    <label class="form-check-label">${connectionId}</label>
+                                                </div>`);
+            });
+        });
+
+        connection.on("ReceiveMessage", (message) => {
+            let receiveMessage = `\n Gelen Mesaj: ${message}`;
+            $('#messages').html($('#messages').val() + receiveMessage);
+        });
+    </script>
+}

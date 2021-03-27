@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalR.API.Hubs;
+using SignalR.API.Hubs.Chats;
 using SignalR.API.Models;
 
 namespace SignalR.API
@@ -52,6 +53,7 @@ namespace SignalR.API
                  */
                 endpoints.MapHub<MyHub>("/MyHub");
                 endpoints.MapHub<FootballHub>("/FootballHub");
+                endpoints.MapHub<ChatHub>("/ChatHub");
             });
         }
     }
