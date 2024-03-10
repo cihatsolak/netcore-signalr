@@ -1,0 +1,60 @@
+﻿@{
+    ViewData["Title"] = "Stream Hub";
+}
+<h1>Stream</h1>
+
+<input id="txt-stream" class="form-control" type="text" value="ahmet;mehmet;hasan;emre;ayşe" />
+<button class="btn btn-primary my-2" id="btn-form-client-to-hub">Send To Hub</button>
+<hr />
+<div id="stream-box" class="alert alert-info">
+</div>
+
+@section Scripts
+{
+    <script src="~/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script type="text/javascript">
+        var connection = new signalR.HubConnectionBuilder().withUrl('/stream-hub').configureLogging(signalR.LogLevel.Information).build();
+
+        connection.onclose(async () => {
+            await start();
+        })
+
+        async function start() {
+            try {
+                await connection.start();
+                console.log("Hub ile bağlantı kuruldu.");
+                $("#connectionId").html(`Connection ID: ${connection.connectionId}`);
+            } catch (ex) {
+                console.error("hub ile bağlantı kurulamadı.", err);
+                setTimeout(() => start(), 5000);
+            }
+        }
+
+        start();
+
+
+        $("#btn-form-client-to-hub").click(() => {
+
+            const names = $("#txt-stream").val();
+            const nameAsChunck = names.split(';');
+
+            const subject = new signalR.Subject();
+
+            connection.send("BroadcastStreamDataToAllClient", subject).catch(err => {
+                console.error(err)
+            });
+
+            nameAsChunck.forEach(name => {
+                subject.next(name);
+            })
+
+            subject.complete();
+        });
+
+
+        connection.on("ReceiveMessageAsStreamForAllClient", (name) => {
+            $("#stream-box").append(`<p>${name}</p>`);
+        })
+
+    </script>
+}
