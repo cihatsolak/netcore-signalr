@@ -3,7 +3,6 @@ using SignalR.Web.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace SignalR.Web.Hubs
@@ -34,9 +33,9 @@ namespace SignalR.Web.Hubs
             }
         }
 
-        public async IAsyncEnumerable<string> BroadCastFromHubToClient()
+        public async IAsyncEnumerable<string> BroadCastFromHubToClient(int capacity)
         {
-            List<int> numbers = Enumerable.Range(1, 10).ToList();
+            List<int> numbers = Enumerable.Range(1, capacity).ToList();
 
             foreach (var number in numbers)
             {

@@ -6,6 +6,7 @@
 <input id="txt-stream" class="form-control" type="text" value="ahmet;mehmet;hasan;emre;ayşe" />
 <button class="btn btn-primary my-2" id="btn-send-stream-name">Send Name To Hub</button>
 <button class="btn btn-primary my-2" id="btn-send-stream-product">Send Product To Hub</button>
+<button class="btn btn-primary my-2" id="btn-from-hub-to-client">From Hub To Client</button>
 <hr />
 <div id="stream-box" class="alert alert-info">
 </div>
@@ -103,5 +104,21 @@
 
         //#endregion sendProduct
 
+        $("#btn-from-hub-to-client").click(() => {
+
+            connection.stream("BroadCastFromHubToClient", 10)
+                .subscribe({
+                    next: (number) => {
+                        $("#stream-box").append(`<p>${number}</p>`);
+                    },
+                    complete: () => {
+                        
+                    },
+                    error: (err) => {
+                       
+                    },
+                });
+
+        });
     </script>
 }
