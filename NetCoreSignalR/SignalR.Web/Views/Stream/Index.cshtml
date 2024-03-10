@@ -4,7 +4,8 @@
 <h1>Stream</h1>
 
 <input id="txt-stream" class="form-control" type="text" value="ahmet;mehmet;hasan;emre;ayşe" />
-<button class="btn btn-primary my-2" id="btn-form-client-to-hub">Send To Hub</button>
+<button class="btn btn-primary my-2" id="btn-send-stream-name">Send Name To Hub</button>
+<button class="btn btn-primary my-2" id="btn-send-stream-product">Send Product To Hub</button>
 <hr />
 <div id="stream-box" class="alert alert-info">
 </div>
@@ -24,7 +25,7 @@
                 await connection.start();
                 console.log("Hub ile bağlantı kuruldu.");
                 $("#connectionId").html(`Connection ID: ${connection.connectionId}`);
-            } catch (ex) {
+            } catch (ex) { 
                 console.error("hub ile bağlantı kurulamadı.", err);
                 setTimeout(() => start(), 5000);
             }
@@ -32,8 +33,9 @@
 
         start();
 
+        //#region sendName
 
-        $("#btn-form-client-to-hub").click(() => {
+        $("#btn-send-stream-name").click(() => {
 
             const names = $("#txt-stream").val();
             const nameAsChunck = names.split(';');
@@ -55,6 +57,51 @@
         connection.on("ReceiveMessageAsStreamForAllClient", (name) => {
             $("#stream-box").append(`<p>${name}</p>`);
         })
+
+        //#endregion sendName
+
+        //#region sendProduct
+
+        $("#btn-send-stream-product").click(() => {
+
+            let productList = [
+                {
+                    id: 1,
+                    name: "pen 1",
+                    price: 100
+                },
+                {
+                    id: 2,
+                    name: "pen 2",
+                    price: 200
+                },
+                {
+                    id: 3,
+                    name: "pen 3",
+                    price: 300
+                }
+            ]
+
+            const subject = new signalR.Subject();
+
+            connection.send("BroadcastStreamProductsToAllClient", subject).catch(err => {
+                console.error(err)
+            });
+
+            productList.forEach(product => {
+                debugger;
+                subject.next(product);
+            })
+
+            subject.complete();
+        });
+
+
+        connection.on("ReceiveProductAsStreamForAllClient", (product) => {
+            $("#stream-box").append(`<p> id: ${product.id} name: ${product.name} price: ${product.price}</p>`);
+        })
+
+        //#endregion sendProduct
 
     </script>
 }
