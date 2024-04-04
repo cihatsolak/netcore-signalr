@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+
 namespace SignalR.Identity.Controllers;
 
 public class
@@ -5,7 +7,8 @@ public class
     ILogger<HomeController> logger,
     UserManager<IdentityUser> userManager,
     SignInManager<IdentityUser> signInManager,
-    AppDbContext context) : Controller
+    AppDbContext context,
+    FileService fileService) : Controller
 {
     public IActionResult Index()
     {
@@ -107,6 +110,18 @@ public class
         await context.SaveChangesAsync();
 
         return View(productList);
+    }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> CreateExcel()
+    {
+        var response = new
+        {
+            Status = await fileService.AddMessageToQueue()
+        };
+
+        return Json(response);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

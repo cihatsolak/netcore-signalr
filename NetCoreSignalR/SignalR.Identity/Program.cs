@@ -8,6 +8,18 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("SignalRIdentityDb"));
 });
 
+//Channel.CreateBounded() 
+//kuyrukta kaç mesaj bulunmasý gerektiðini belirtiyorsunuz.
+
+//Channel.CreateUnbounded() 
+//Kuyrukta kaç mesaj bulunmasý gerektiðini belirtmiyorsunuz. Alabildiði kadar mesajý kabul ediyor.
+
+var channel = Channel.CreateUnbounded<Tuple<string, List<Product>>>();
+builder.Services.AddSingleton(channel);
+
+builder.Services.AddScoped<FileService>();
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
