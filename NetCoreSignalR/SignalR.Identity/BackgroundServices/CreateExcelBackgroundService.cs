@@ -43,7 +43,6 @@ public class CreateExcelBackgroundService(
             table.Columns.Add(item.Name, item.PropertyType);
         }
 
-
         products.ForEach(product =>
         {
             table.Rows.Add(product.Id, product.Name, product.Price, product.Description, product.UserId);
