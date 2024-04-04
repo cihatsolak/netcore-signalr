@@ -15,6 +15,7 @@ builder.Services.AddScoped<FileService>();
 var channel = Channel.CreateUnbounded<(string, List<Product>)>();
 builder.Services.AddSingleton(channel);
 
+builder.Services.AddSignalR();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -44,6 +45,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.MapHub<AppHub>("/hub");
 
 app.MapControllerRoute(
     name: "default",

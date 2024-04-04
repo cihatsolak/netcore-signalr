@@ -26,11 +26,11 @@ public class CreateExcelBackgroundService(
             await using var excelFileStream = new FileStream(newExcelFilePath, FileMode.Create);
             workBook.SaveAs(excelFileStream);
 
-            //using var scope = serviceProvider.CreateScope();
-            //var appHub = scope.ServiceProvider.GetRequiredService<IHubContext<AppHub>>();
+            using var scope = serviceProvider.CreateScope();
+            var appHub = scope.ServiceProvider.GetRequiredService<IHubContext<AppHub>>();
 
 
-            //await appHub.Clients.User(userId).SendAsync("AlertCompleteFile", $"/files/{newExcelFilePath}", stoppingToken);
+            await appHub.Clients.User(userId).SendAsync("AlertCompleteFile", $"/files/{newExcelFilePath}", stoppingToken);
         }
     }
 
